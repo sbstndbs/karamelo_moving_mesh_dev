@@ -78,9 +78,12 @@ void ULMPM::setup(vector<string> args)
 
 void ULMPM::compute_grid_weight_functions_and_gradients()
 {
-  if (!update_wf)
-    return;
+  //if (!update_wf)
+    //return;
 
+ 
+  if (update_wf)
+  {
   bigint nsolids, np_local, nnodes_local, nnodes_ghost;
   int rigid_solids = 0;
 
@@ -108,6 +111,11 @@ void ULMPM::compute_grid_weight_functions_and_gradients()
       vector<vector<Eigen::Vector3d>> *wfd_pn = &domain->solids[isolid]->wfd_pn;
       vector<vector<Eigen::Vector3d>> *wfd_np = &domain->solids[isolid]->wfd_np;
 
+//////////////////// init
+      vector<vector<Eigen::Vector3d>> *wfd_pn_init = &domain->solids[isolid]->wfd_pn_init;
+      vector<vector<Eigen::Vector3d>> *wfd_np_init = &domain->solids[isolid]->wfd_np_init;
+
+
       Eigen::Vector3d r;
       double s[3], sd[3];
       vector<Eigen::Vector3d> *xp = &domain->solids[isolid]->x;
@@ -126,20 +134,26 @@ void ULMPM::compute_grid_weight_functions_and_gradients()
 
       for (int in = 0; in < nnodes_local + nnodes_ghost; in++)
       {
+      
         (*neigh_np)[in].clear();
         (*numneigh_np)[in] = 0;
         (*wf_np)[in].clear();
-        (*wfd_np)[in].clear();
+        (*wfd_np)[in].clear();      
+      
+        (*wfd_np_init)[in].clear();
       }
 
       if (np_local && (nnodes_local + nnodes_ghost))
       {
         for (int ip = 0; ip < np_local; ip++)
         {
+        
           (*neigh_pn)[ip].clear();
           (*numneigh_pn)[ip] = 0;
           (*wf_pn)[ip].clear();
           (*wfd_pn)[ip].clear();
+ 
+          (*wfd_pn_init)[ip].clear();
 
           // Calculate what nodes particle ip will interact with:
 	  int nx = domain->solids[isolid]->grid->nx_global;
@@ -347,6 +361,8 @@ void ULMPM::compute_grid_weight_functions_and_gradients()
                 wfd[1] = 0;
                 wfd[2] = 0;
               }
+              (*wfd_pn_init)[ip].push_back(wfd);
+              (*wfd_np_init)[in].push_back(wfd);
               (*wfd_pn)[ip].push_back(wfd);
               (*wfd_np)[in].push_back(wfd);
               // cout << "ip=" << ip << ", in=" << in << ", wf=" << wf << ",
@@ -370,6 +386,188 @@ void ULMPM::compute_grid_weight_functions_and_gradients()
 
   if (rigid_solids_reduced)
     domain->grid->reduce_rigid_ghost_nodes();
+    
+    for (int i = 0 ; i < np_local; i++)
+    {
+    	//cout <<  " position particule " << i << " " << domain->solids[0]->x[i][0] << " " << domain->solids[0]->x[i][1] << endl ;    	
+    }
+  }
+    /*
+    cout << " id noeud 1 particule 1 : " << domain->solids[0]->neigh_pn[0][0] << endl ; 
+    cout << " adresse noeud 1 particule 1 : " << &domain->solids[0]->neigh_pn[0][0] << endl ;  
+    cout << " coord noeud 1 particule 1 : " << domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[0][0]] << endl ;         
+    cout << " id noeud 2 particule 1 : " << domain->solids[0]->neigh_pn[0][1] << endl ;
+    cout << " adresse noeud 2 particule 1 : " << &domain->solids[0]->neigh_pn[0][1] << endl ; 
+    cout << " coord noeud 2 particule 1 : " << domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[0][1]] << endl ;       
+    cout << " id noeud 3 particule 1 : " << domain->solids[0]->neigh_pn[0][2]<< endl ; 
+    cout << " adresse noeud 3 particule 1 : " << &domain->solids[0]->neigh_pn[0][2] << endl ;
+    cout << " coord noeud 3 particule 1 : " << domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[0][2]] << endl ;   
+    cout << " id noeud 4 particule 1 : " << domain->solids[0]->neigh_pn[0][3] << endl ;     
+    cout << " adresse noeud 4 particule 1 : " << &domain->solids[0]->neigh_pn[0][3] << endl ;   
+    cout << " coord noeud 4 particule 1 : " << domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[0][3]] << endl ;   
+  
+  
+  
+    cout << " id noeud 1 particule 2 : " << domain->solids[0]->neigh_pn[1][0] << endl ; 
+    cout << " adresse noeud 1 particule 2 : " << &domain->solids[0]->neigh_pn[1][0] << endl ;     
+    cout << " id noeud 2 particule 2 : " << domain->solids[0]->neigh_pn[1][1] << endl ;
+    cout << " adresse noeud 2 particule 2 : " << &domain->solids[0]->neigh_pn[1][1] << endl ;     
+    cout << " id noeud 3 particule 2 : " << domain->solids[0]->neigh_pn[1][2]<< endl ; 
+    cout << " adresse noeud 2 particule 2 : " << &domain->solids[0]->neigh_pn[1][2] << endl ;
+    cout << " id noeud 4 particule2 : " << domain->solids[0]->neigh_pn[1][3] << endl ;     
+    cout << " adresse noeud 4 particule 2 : " << &domain->solids[0]->neigh_pn[1][3] << endl ;    
+    
+    cout << " dw noeud 1 particule 1 : " << domain->solids[0]->wfd_pn[0][0]   << endl ; 
+    cout << " dw noeud 2 particule 1 : " << domain->solids[0]->wfd_pn[0][1]   << endl ; 
+    cout << " dw noeud 3 particule 1 : "  << domain->solids[0]->wfd_pn[0][2]   << endl ; 
+    cout << " dw noeud 4 particule 1 : " << domain->solids[0]->wfd_pn[0][3]   << endl ;     
+    
+  */
+    
+    /// calcul de la jacobienne inverse, reevaluation des fct de formes 
+    
+    
+    
+    double div;
+    double j11;
+    double j12;
+    double j21;
+    double j22;
+    double x1;
+    double x2;
+    double x3;
+    double x4;
+    double y1;
+    double y2;
+    double y3;
+    double y4;
+    double a ;
+    double b ; 
+    double cellsize =  domain->solids[0]->grid->cellsize;
+	for (int i = 0 ; i < domain->solids[0]->np_local ; i++)   // pour chaque particule
+	{
+		// noeud bas gauche
+		
+		a =  (domain->solids[0]->x[i][0] - domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[i][0]][0] ) *2/cellsize - 1      ; // coord selon x 
+		b =  (domain->solids[0]->x[i][1] - domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[i][0]][1]  )*2/cellsize  - 1  ; // coord selon y 
+		x1 = domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[i][0]][0] ; 
+		x4 = domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[i][1]][0] ;     		
+		x2 = domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[i][2]][0] ;     		
+		x3 = domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[i][3]][0] ;     		
+		y1 = domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[i][0]][1] ;     		
+		y4 = domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[i][1]][1] ;     		
+		y2 = domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[i][2]][1] ;     		
+		y3 = domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[i][3]][1] ;   
+		
+		
+		
+		/// for test 
+		/*
+		a = 0.5 ; 
+		b = 0.5 ; 
+		x1 = 0;
+		x2 = 1;
+		x3 = 1;
+		x4 = 0; 
+		y1 =0;
+		y2 = 0;
+		y3 = 1; 
+		y4 = 1 ;
+		*/
+
+		div = (0.03125*a*x1*y3 - 0.03125*a*x1*y4 - 0.03125*a*x2*y3 + 0.03125*a*x2*y4 - 0.03125*a*x3*y1 + 0.03125*a*x3*y2 + 0.03125*a*x4*y1 - 0.03125*a*x4*y2 + 0.03125*b*x1*y2 - 0.03125*b*x1*y3 - 0.03125*b*x2*y1 + 0.03125*b*x2*y4 + 0.03125*b*x3*y1 - 0.03125*b*x3*y4 - 0.03125*b*x4*y2 + 0.03125*b*x4*y3 - 0.03125*x1*y2 + 0.03125*x1*y4 + 0.03125*x2*y1 - 0.03125*x2*y3 + 0.03125*x3*y2 - 0.03125*x3*y4 - 0.03125*x4*y1 + 0.03125*x4*y3) ; 
+		j11 = (-0.0625*a*y1 + 0.0625*a*y2 - 0.0625*a*y3 + 0.0625*a*y4 + 0.0625*y1 + 0.0625*y2 - 0.0625*y3 - 0.0625*y4)/ div ;
+		j12 = (0.0625*b*y1 - 0.0625*b*y2 + 0.0625*b*y3 - 0.0625*b*y4 - 0.0625*y1 + 0.0625*y2 + 0.0625*y3 - 0.0625*y4) / div ;
+		j21 =(0.0625*a*x1 - 0.0625*a*x2 + 0.0625*a*x3 - 0.0625*a*x4 - 0.0625*x1 - 0.0625*x2 + 0.0625*x3 + 0.0625*x4) / div ;
+		j22 = (-0.0625*b*x1 + 0.0625*b*x2 - 0.0625*b*x3 + 0.0625*b*x4 + 0.0625*x1 - 0.0625*x2 - 0.0625*x3 + 0.0625*x4) / div ; 
+		/*
+		cout << " valeur de a reel " << (domain->solids[0]->x[i][0] - domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[i][0]][0] ) << endl ; 
+		cout << " valeur de b reel " << (domain->solids[0]->x[i][1] - domain->solids[0]->grid->x[domain->solids[0]->neigh_pn[i][0]][1]  ) << endl ; 
+				
+		cout << " valeur de a " << a << endl ; 
+		cout << " valeur de b " << b << endl ; 	
+		cout << " valeur de x1 " << x1 << endl ; 
+		cout << " valeur de x2 " << x2 << endl ; 
+		cout << " valeur de x3 " << x3 << endl ; 
+		cout << " valeur de x4 " << x4 << endl ; 
+		cout << " valeur de y1 " << y1 << endl ; 
+		cout << " valeur de y2 " << y2 << endl ; 
+		cout << " valeur de y3 " <<y3 << endl ; 
+		cout << " valeur de y4 " <<y4 << endl ; 
+		cout << " valeur de div " <<div << endl ; 	
+		cout << " valeur de j11 " <<j11 << endl ; 	
+		cout << " valeur de j12 " <<j12 << endl ; 	
+		cout << " valeur de j21 " <<j21 << endl ;
+		cout << " valeur de j22 " <<j22 << endl ; 
+		cout << " valeur de cellsize " <<cellsize << endl ; 
+
+		*/
+		// maj des pn
+
+		domain->solids[0]->wfd_pn[i][0][0] = (domain->solids[0]->wfd_pn_init[i][0][0] * j11 + domain->solids[0]->wfd_pn_init[i][0][1] * j12) * 0.5 *cellsize;
+		domain->solids[0]->wfd_pn[i][0][1] = (domain->solids[0]->wfd_pn_init[i][0][0] * j21 + domain->solids[0]->wfd_pn_init[i][0][1] * j22 ) *0.5 *cellsize ;
+
+		domain->solids[0]->wfd_pn[i][1][0] = (domain->solids[0]->wfd_pn_init[i][1][0] * j11 + domain->solids[0]->wfd_pn_init[i][1][1] * j12) * 0.5 *cellsize;
+		domain->solids[0]->wfd_pn[i][1][1] = (domain->solids[0]->wfd_pn_init[i][1][0] * j21 + domain->solids[0]->wfd_pn_init[i][1][1] * j22 ) *0.5 *cellsize ;
+
+		domain->solids[0]->wfd_pn[i][2][0] = (domain->solids[0]->wfd_pn_init[i][2][0] * j11 + domain->solids[0]->wfd_pn_init[i][2][1] * j12) * 0.5 *cellsize;
+		domain->solids[0]->wfd_pn[i][2][1] = (domain->solids[0]->wfd_pn_init[i][2][0] * j21 + domain->solids[0]->wfd_pn_init[i][2][1] * j22 ) *0.5 *cellsize ;
+
+		domain->solids[0]->wfd_pn[i][3][0] = (domain->solids[0]->wfd_pn_init[i][3][0] * j11 + domain->solids[0]->wfd_pn_init[i][3][1] * j12) * 0.5 *cellsize;
+		domain->solids[0]->wfd_pn[i][3][1] = (domain->solids[0]->wfd_pn_init[i][3][0] * j21 + domain->solids[0]->wfd_pn_init[i][3][1] * j22 ) *0.5 *cellsize ;
+		
+		//cout << "wfd[i][0] avant " <<  domain->solids[0]->wfd_pn_init[i][0] << "  wfd[i][0] apres " <<  domain->solids[0]->wfd_pn[i][0]	<< endl ;
+		
+	}
+	//cout <<" numneigh_np[0] " <<  domain->solids[0]->numneigh_np[20] << endl ; 
+	//cout <<" neigh_np[0] " <<  domain->solids[0]->neigh_np[0][0] << endl ; 
+	
+	int id_p = 0 ; 
+	int id_n = 0 ; 
+	for (int i = 0 ; i < domain->solids[0]->grid->nnodes_local ; i++)
+	{
+		//cout << i << " numneigh_np[0] " <<  domain->solids[0]->numneigh_np[i] << endl ; 
+	}
+	
+	// 170
+	//cout << "neigh_np : " <<domain->solids[0]->neigh_pn[17][0] << endl ;
+
+
+	for (int i = 0 ;  i < domain->solids[0]->grid->nnodes_local ; i++)
+	{
+		for (int j = 0 ; j < domain->solids[0]->numneigh_np[i] ; j++)
+		{
+			// pour chaque noeud, pour chaque particule du noeud 
+			// il y a j particules voisines au nioeud
+			// il faut chercher les noeuds voisins de la particule
+			 
+			for (int k = 0 ; k < domain->solids[0]->numneigh_pn[domain->solids[0]->neigh_np[i][j]]; k++) // pour chaque noeud de la particule 
+			{
+				if (domain->solids[0]->neigh_pn[domain->solids[0]->neigh_np[i][j]][k]  == i) {
+					//cout << " i" << i << endl ;
+					//cout << "domain->solids[0]->wfd_np[i][j][0] " << domain->solids[0]->wfd_np[i][j][0]  << endl ;
+					//cout << "domain->solids[0]->wfd_np[i][j][1]" << domain->solids[0]->wfd_np[i][j][1] << endl ; 
+					//cout << "domain->solids[0]->neigh_np[i][j]" << domain->solids[0]->neigh_np[i][j] << endl ; 
+					///cout << "domain->solids[0]->wfd_pn[domain->solids[0]->neigh_np[i][j]][k][0]" << domain->solids[0]->wfd_pn[domain->solids[0]->neigh_np[i][j]][k][0] << endl ; 
+					
+					
+					domain->solids[0]->wfd_np[i][j][0]  = domain->solids[0]->wfd_pn[domain->solids[0]->neigh_np[i][j]][k][0] ;
+					domain->solids[0]->wfd_np[i][j][1]  = domain->solids[0]->wfd_pn[domain->solids[0]->neigh_np[i][j]][k][1] ;
+					// la derivee du noeud i prenant la j eme particule du noeud i = la derivee de la particule 
+					//cout << "tets" << endl ;
+					//cout << "wfd_pn[i][0] avant " <<  domain->solids[0]->wfd_np_init[i][j][0] << "  wfd[i][0] apres " <<  domain->solids[0]->wfd_np[i][j][0]	<< endl ;
+					//cout << " noeud numero " << i << " avec part de noeud num " << j<< endl ; 
+					//cout << " part numero " << domain->solids[0]->neigh_np[i][j] << " avec noeud de part num " << k<< endl ; 
+				}
+			}
+			
+		}
+	
+	}
+
+
+    
+    update_wf = 0 ; 
 }
 
 void ULMPM::particles_to_grid() {
@@ -600,3 +798,24 @@ void ULMPM::exchange_particles()
 	}
     }
 }
+
+
+
+
+
+
+
+
+
+
+void ULMPM::update_grid_positions()
+{
+  for (int isolid=0; isolid<domain->solids.size(); isolid++) {
+    domain->solids[isolid]->grid->update_grid_positions();
+  }
+}
+
+
+
+
+

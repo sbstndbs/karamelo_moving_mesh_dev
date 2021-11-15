@@ -107,6 +107,9 @@ class Solid : protected Pointers {
   vector<vector< Eigen::Vector3d >> wfd_pn; ///< Array of arrays (matrix) of the derivative of the weight functions \f$\partial \Phi_{pI}/\partial x\f$.
   vector<vector< Eigen::Vector3d >> wfd_np; ///< Array of arrays (matrix) of the derivative of the weight functions \f$\partial \Phi_{Ip}/ \partial x\f$ effectively the transpose of wfd_pn.
 
+//////////////////// init of these       
+  vector<vector< Eigen::Vector3d >> wfd_pn_init; 
+  vector<vector< Eigen::Vector3d >> wfd_np_init;
 
   struct Mat *mat;                          ///< Pointer to the material
 

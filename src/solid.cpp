@@ -282,13 +282,14 @@ void Solid::grow(int nparticles)
   if (nc != 0)
     wf_pn_corners.resize(nc * nparticles);
   wfd_pn.resize(nparticles);
-
+  wfd_pn_init.resize(nparticles);
   bigint nnodes = grid->nnodes_local + grid->nnodes_ghost;
 
   numneigh_np.resize(nnodes);
   neigh_np.resize(nnodes);
   wf_np.resize(nnodes);
   wfd_np.resize(nnodes);
+  wfd_np_init.resize(nnodes);
 }
 
 void Solid::compute_mass_nodes(bool reset)
